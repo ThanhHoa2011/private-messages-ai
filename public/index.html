@@ -1,39 +1,357 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#252d3a">
 <title>Private Messages</title>
 <style>
 :root{--ink:#202635;--muted:#7b8495;--line:#e7eaf0;--accent:#536b83}
-*{box-sizing:border-box}body{margin:0;background:#eef1f6;color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#eef1f6;color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
 .app{max-width:760px;height:100dvh;max-height:960px;margin:auto;background:#fff;display:flex;flex-direction:column;box-shadow:0 8px 35px #1e293b12}
-header{padding:17px 20px;background:#252d3a;color:#fff}.brand{font-size:11px;letter-spacing:.14em;color:#bac5d4;font-weight:700}.headrow{display:flex;align-items:center;justify-content:space-between;margin-top:4px}h1{font-size:21px;margin:0}.status{font-size:11px;border:1px solid #5caa82;color:#a8edc6;padding:4px 9px;border-radius:20px}
-.tabs{display:flex;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}.tab{flex:1;display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:#fff;padding:9px;border-radius:14px;text-align:left;color:var(--ink);cursor:pointer}.tab.active{background:#edf2f7;border-color:#aab9c9}.avatar{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none}.han{background:#795b72}.geum{background:#536b83}.tab strong{display:block;font-size:13px}.tab small{color:var(--muted);font-size:11px}
-.chathead{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line)}.meta{flex:1}.chathead strong{display:block}.chathead small{color:var(--muted)}.messages{flex:1;overflow:auto;padding:18px 15px;background:#f9fafc}.empty{text-align:center;color:var(--muted);margin:18vh auto 0;max-width:280px}.empty .big{font-size:34px}.msg{max-width:84%;padding:10px 13px;border-radius:17px;margin:9px 0;white-space:pre-wrap;overflow-wrap:anywhere}.msg.me{background:#dce9f7;margin-left:auto;border-bottom-right-radius:5px}.msg.ai{background:#fff;border:1px solid var(--line);margin-right:auto;border-bottom-left-radius:5px}.time{font-size:10px;color:#8b93a1;margin-top:4px;text-align:right}
-.composer{border-top:1px solid var(--line);padding:11px 13px calc(11px + env(safe-area-inset-bottom));background:#fff}.stickers{display:none;gap:7px;flex-wrap:wrap;margin-bottom:9px}.stickers.show{display:flex}.stickers button{border:1px solid var(--line);background:#f7f8fa;border-radius:10px;padding:6px 9px;font-size:19px}.compose{display:flex;align-items:flex-end;gap:8px}.iconbtn{border:0;background:#f0f2f6;border-radius:12px;width:42px;height:42px;font-size:19px}textarea{flex:1;resize:none;min-height:42px;max-height:120px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;outline:none}.send{height:42px;border:0;border-radius:12px;background:#34495e;color:#fff;padding:0 16px;font-weight:650}.send:disabled{opacity:.4}.hint{font-size:10px;color:var(--muted);padding:7px 3px 0}.typing{color:var(--muted);font-size:12px;margin:6px 4px}
+header{padding:17px 20px;background:#252d3a;color:#fff}
+.brand{font-size:11px;letter-spacing:.14em;color:#bac5d4;font-weight:700}
+.headrow{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+h1{font-size:21px;margin:0}
+.status{font-size:11px;border:1px solid #5caa82;color:#a8edc6;padding:4px 9px;border-radius:20px}
+.tabs{display:flex;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.tab{flex:1;display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:#fff;padding:9px;border-radius:14px;text-align:left;color:var(--ink);cursor:pointer}
+.tab.active{background:#edf2f7;border-color:#aab9c9}
+.avatar{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none}
+.han{background:#795b72}
+.geum{background:#536b83}
+.tab strong{display:block;font-size:13px}
+.tab small{color:var(--muted);font-size:11px}
+.chathead{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.meta{flex:1}
+.chathead strong{display:block}
+.chathead small{color:var(--muted)}
+.head-actions{display:flex;gap:7px}
+.action{border:1px solid var(--line);background:#fff;color:#536174;border-radius:10px;padding:7px 10px;font-size:12px;cursor:pointer}
+.action:hover{background:#f3f5f8}
+.action.danger{color:#b54747;border-color:#f0dada}
+.messages{flex:1;overflow:auto;padding:18px 15px;background:#f9fafc}
+.empty{text-align:center;color:var(--muted);margin:18vh auto 0;max-width:280px}
+.empty .big{font-size:34px}
+.msg{position:relative;max-width:84%;padding:10px 13px;border-radius:17px;margin:9px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.me{background:#dce9f7;margin-left:auto;border-bottom-right-radius:5px}
+.msg.ai{background:#fff;border:1px solid var(--line);margin-right:auto;border-bottom-left-radius:5px}
+.time{font-size:10px;color:#8b93a1;margin-top:4px;text-align:right}
+.retract{display:none;position:absolute;right:5px;top:-25px;border:1px solid var(--line);background:#fff;color:#a33;border-radius:8px;padding:3px 7px;font-size:11px;cursor:pointer;box-shadow:0 2px 8px #0000000d}
+.msg.me:hover .retract,.msg.me:focus-within .retract{display:block}
+.msg.sticker-msg{background:transparent;border:0;padding:2px 5px;max-width:210px}
+.msg.sticker-msg .time{padding-right:7px}
+.sticker-art{width:132px;height:116px;display:grid;place-items:center;position:relative;border-radius:24px;background:radial-gradient(circle at 35% 25%,#fff 0 8%,#f9e7f2 9% 43%,#dceaff 100%);box-shadow:0 7px 18px #526b8320;overflow:hidden}
+.sticker-art .face{font-size:58px;filter:drop-shadow(0 3px 1px #00000012);animation:bob 1.1s ease-in-out infinite}
+.sticker-art .spark{position:absolute;font-size:23px;animation:twinkle .8s ease-in-out infinite alternate}
+.sticker-art .s1{top:8px;right:12px}
+.sticker-art .s2{bottom:9px;left:10px;animation-delay:.3s}
+.sticker-art .caption{position:absolute;bottom:5px;right:7px;font-size:10px;font-weight:900;color:#536b83;letter-spacing:.04em;text-shadow:0 1px #fff}
+@keyframes bob{0%,100%{transform:translateY(3px) rotate(-5deg) scale(1)}50%{transform:translateY(-8px) rotate(6deg) scale(1.08)}}
+@keyframes twinkle{from{transform:scale(.7) rotate(-15deg);opacity:.5}to{transform:scale(1.2) rotate(18deg);opacity:1}}
+.composer{border-top:1px solid var(--line);padding:11px 13px calc(11px + env(safe-area-inset-bottom));background:#fff}
+.stickers{display:none;gap:9px;flex-wrap:wrap;margin-bottom:10px;padding:10px;background:#f7f8fa;border:1px solid var(--line);border-radius:15px;max-height:230px;overflow:auto}
+.stickers.show{display:flex}
+.sticker-choice{width:104px;border:1px solid var(--line);background:#fff;border-radius:13px;padding:7px 5px;cursor:pointer;color:var(--ink)}
+.sticker-choice:hover{border-color:#9aadc2;background:#f4f7fb}
+.sticker-choice .sticker-art{width:88px;height:78px;margin:auto;border-radius:17px}
+.sticker-choice .face{font-size:42px}
+.sticker-choice .spark{font-size:17px}
+.sticker-choice small{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+.compose{display:flex;align-items:flex-end;gap:8px}
+.iconbtn{border:0;background:#f0f2f6;border-radius:12px;width:42px;height:42px;font-size:15px;cursor:pointer}
+textarea{flex:1;resize:none;min-height:42px;max-height:120px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;outline:none}
+.send{height:42px;border:0;border-radius:12px;background:#34495e;color:#fff;padding:0 16px;font-weight:650;cursor:pointer}
+.send:disabled{opacity:.4}
+.hint{font-size:10px;color:var(--muted);padding:7px 3px 0}
+.typing{color:var(--muted);font-size:12px;margin:6px 4px}
 @media(min-width:761px){body{padding:20px 0}.app{height:calc(100dvh - 40px);border-radius:20px;overflow:hidden}}
-</style></head>
-<body><div class="app">
-<header><div class="brand">YOUR PRIVATE CHAT</div><div class="headrow"><h1>Tin nhắn</h1><span class="status">AI chat</span></div></header>
+@media(max-width:420px){.chathead{padding:10px 12px}.action{padding:7px 8px;font-size:11px}.msg{max-width:91%}.sticker-choice{width:calc(33.333% - 7px)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">YOUR PRIVATE CHAT</div>
+  <div class="headrow"><h1>Tin nhắn</h1><span class="status">AI chat</span></div>
+</header>
+
 <nav class="tabs">
-<button class="tab active" data-person="han"><span class="avatar han">한</span><span><strong>Han Su Gang</strong><small>Brave Citizen</small></span></button>
-<button class="tab" data-person="geum"><span class="avatar geum">금</span><span><strong>Geum Seong-je</strong><small>Weak Hero Class 2</small></span></button>
+  <button class="tab active" data-person="han">
+    <span class="avatar han">한</span>
+    <span><strong>Han Su Gang</strong><small>Brave Citizen</small></span>
+  </button>
+  <button class="tab" data-person="geum">
+    <span class="avatar geum">금</span>
+    <span><strong>Geum Seong-je</strong><small>Weak Hero Class 2</small></span>
+  </button>
 </nav>
-<div class="chathead"><span id="headAvatar" class="avatar han">한</span><div class="meta"><strong id="headName">Han Su Gang</strong><small id="headSource">Brave Citizen · Chat riêng</small></div><span>⋯</span></div>
+
+<div class="chathead">
+  <span id="headAvatar" class="avatar han">한</span>
+  <div class="meta">
+    <strong id="headName">Han Su Gang</strong>
+    <small id="headSource">Brave Citizen · Chat riêng</small>
+  </div>
+  <div class="head-actions">
+    <button id="resetChat" class="action danger" title="Xóa cuộc trò chuyện hiện tại">Reset chat</button>
+  </div>
+</div>
+
 <main id="messages" class="messages" aria-live="polite"></main>
-<section class="composer"><div id="stickers" class="stickers"><button>😂</button><button>😭</button><button>💀</button><button>🫠</button><button>🤨</button><button>👍</button><button>❤️</button><button>🤣</button></div>
-<div class="compose"><button id="stickerToggle" class="iconbtn" title="Emoji / sticker">☺</button><textarea id="draft" rows="1" placeholder="Nhắn tin..."></textarea><button id="send" class="send" disabled>Gửi</button></div>
-<div class="hint">Tin nhắn được lưu trên trình duyệt này. Không tự nhắn trước, không viết cốt truyện hay lời dẫn.</div></section></div>
+
+<section class="composer">
+  <div id="stickers" class="stickers" aria-label="Kho sticker động"></div>
+  <div class="compose">
+    <button id="stickerToggle" class="iconbtn" title="Mở kho sticker động" aria-label="Mở kho sticker động">GIF</button>
+    <textarea id="draft" rows="1" placeholder="Nhắn tin..."></textarea>
+    <button id="send" class="send" disabled>Gửi</button>
+  </div>
+  <div class="hint">Tin nhắn được lưu trên trình duyệt này. Nhấn “Thu hồi” trên tin nhắn của bạn để gỡ tin.</div>
+</section>
+</div>
+
 <script>
-const people={han:{name:"Han Su Gang",source:"Brave Citizen",initial:"한",cls:"han"},geum:{name:"Geum Seong-je",source:"Weak Hero Class 2",initial:"금",cls:"geum"}};
-let current="han";const $=id=>document.getElementById(id);const storeKey=id=>"pm-history-"+id;
-function history(id){try{return JSON.parse(localStorage.getItem(storeKey(id))||"[]")}catch{return []}}
-function persist(id,arr){localStorage.setItem(storeKey(id),JSON.stringify(arr))}
-function stamp(){return new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})}
-function addBubble(text,from,time=stamp()){const el=document.createElement("div");el.className="msg "+(from==="me"?"me":"ai");el.textContent=text;const t=document.createElement("div");t.className="time";t.textContent=time;el.appendChild(t);$("messages").appendChild(el)}
-function render(){const p=people[current],arr=history(current);document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.person===current));$("headAvatar").className="avatar "+p.cls;$("headAvatar").textContent=p.initial;$("headName").textContent=p.name;$("headSource").textContent=p.source+" · Chat riêng";$("messages").innerHTML="";if(!arr.length){$("messages").innerHTML='<div class="empty"><div class="big">💬</div><strong>Bắt đầu cuộc trò chuyện</strong><p>Nhắn tin tự nhiên như Messenger nhé.</p></div>';return}arr.forEach(m=>addBubble(m.text,m.from,m.time));$("messages").scrollTop=$("messages").scrollHeight}
-async function send(){const text=$("draft").value.trim();if(!text)return;const id=current,arr=history(id);arr.push({from:"me",text,time:stamp()});persist(id,arr);$("draft").value="";$("send").disabled=true;render();const typing=document.createElement("div");typing.className="typing";typing.textContent=people[id].name+" đang nhập...";$("messages").appendChild(typing);$("messages").scrollTop=$("messages").scrollHeight;
-try{const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({character:id,messages:arr.slice(-20).map(m=>({role:m.from==="me"?"user":"assistant",content:m.text}))})});const data=await response.json();typing.remove();if(!response.ok)throw new Error(data.error||"Không thể kết nối AI.");const reply=(data.reply||"").trim();if(!reply)throw new Error("AI chưa trả lời, thử lại nhé.");const latest=history(id);latest.push({from:"ai",text:reply,time:stamp()});persist(id,latest);if(current===id){render()}}catch(e){typing.remove();const latest=history(id);latest.push({from:"ai",text:"Tui chưa kết nối được lúc này. Bà thử lại sau nhé. ("+e.message+")",time:stamp()});persist(id,latest);if(current===id)render()}}
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{current=b.dataset.person;render()}));$("send").addEventListener("click",send);$("draft").addEventListener("input",()=>{$("send").disabled=!$("draft").value.trim()});$("draft").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});$("stickerToggle").addEventListener("click",()=>$("stickers").classList.toggle("show"));$("stickers").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{$("draft").value+=($("draft").value?" ":"")+b.textContent;$("send").disabled=false;$("draft").focus()}));render();
-</script></body></html>
+const people={
+  han:{name:"Han Su Gang",source:"Brave Citizen",initial:"한",cls:"han"},
+  geum:{name:"Geum Seong-je",source:"Weak Hero Class 2",initial:"금",cls:"geum"}
+};
+
+const stickerSet=[
+  {id:"lol",face:"🤣",spark:"✨",caption:"CƯỜI XỈU",label:"Cười xỉu"},
+  {id:"cry",face:"😭",spark:"💧",caption:"HUHU",label:"Khóc nhè"},
+  {id:"shock",face:"😳",spark:"⚡",caption:"ỦA??",label:"Đứng hình"},
+  {id:"dead",face:"💀",spark:"✦",caption:"BÓ TAY",label:"Bất lực"},
+  {id:"cool",face:"😎",spark:"⭐",caption:"QUÁ ĐỈNH",label:"Ngầu"},
+  {id:"love",face:"🥰",spark:"💖",caption:"YAY",label:"Vui vẻ"},
+  {id:"angry",face:"😤",spark:"💢",caption:"HỨ!",label:"Cọc"},
+  {id:"huh",face:"🤨",spark:"❔",caption:"HẢ?",label:"Khó hiểu"},
+  {id:"sleep",face:"🥱",spark:"💤",caption:"BUỒN NGỦ",label:"Ngáp"}
+];
+
+let current="han";
+let requestVersion={han:0,geum:0};
+
+const $=id=>document.getElementById(id);
+const storeKey=id=>"pm-history-"+id;
+
+function history(id){
+  try{return JSON.parse(localStorage.getItem(storeKey(id))||"[]")}
+  catch{return []}
+}
+
+function persist(id,arr){
+  localStorage.setItem(storeKey(id),JSON.stringify(arr));
+}
+
+function stamp(){
+  return new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
+}
+
+function stickerMarkup(id){
+  const s=stickerSet.find(x=>x.id===id)||stickerSet[0];
+  return `<div class="sticker-art">
+    <span class="spark s1">${s.spark}</span>
+    <span class="face">${s.face}</span>
+    <span class="spark s2">${s.spark}</span>
+    <span class="caption">${s.caption}</span>
+  </div>`;
+}
+
+function addBubble(m,index){
+  const el=document.createElement("div");
+  el.className="msg "+(m.from==="me"?"me":"ai")+(m.type==="sticker"?" sticker-msg":"");
+
+  if(m.type==="sticker"){
+    el.innerHTML=stickerMarkup(m.stickerId);
+  }else{
+    const content=document.createElement("div");
+    content.textContent=m.text;
+    el.appendChild(content);
+  }
+
+  if(m.from==="me"){
+    const retract=document.createElement("button");
+    retract.className="retract";
+    retract.textContent="Thu hồi";
+    retract.title="Thu hồi tin nhắn này";
+    retract.addEventListener("click",()=>retractMessage(index));
+    el.appendChild(retract);
+  }
+
+  const t=document.createElement("div");
+  t.className="time";
+  t.textContent=m.time||"";
+  el.appendChild(t);
+  $("messages").appendChild(el);
+}
+
+function render(){
+  const p=people[current],arr=history(current);
+
+  document.querySelectorAll(".tab").forEach(b=>
+    b.classList.toggle("active",b.dataset.person===current)
+  );
+
+  $("headAvatar").className="avatar "+p.cls;
+  $("headAvatar").textContent=p.initial;
+  $("headName").textContent=p.name;
+  $("headSource").textContent=p.source+" · Chat riêng";
+  $("messages").innerHTML="";
+
+  if(!arr.length){
+    $("messages").innerHTML='<div class="empty"><div class="big">💬</div><strong>Bắt đầu cuộc trò chuyện</strong><p>Nhắn tin tự nhiên như Messenger nhé.</p></div>';
+    return;
+  }
+
+  arr.forEach((m,i)=>addBubble(m,i));
+  $("messages").scrollTop=$("messages").scrollHeight;
+}
+
+function retractMessage(index){
+  const arr=history(current);
+  if(!arr[index]||arr[index].from!=="me")return;
+
+  if(!confirm("Thu hồi tin nhắn này nhé?"))return;
+
+  arr.splice(index,1);
+  persist(current,arr);
+  requestVersion[current]++;
+  render();
+}
+
+function sendSticker(id){
+  const s=stickerSet.find(x=>x.id===id);
+  if(!s)return;
+
+  const arr=history(current);
+  arr.push({
+    from:"me",
+    type:"sticker",
+    stickerId:id,
+    text:"[Sticker: "+s.label+"]",
+    time:stamp()
+  });
+
+  persist(current,arr);
+  $("stickers").classList.remove("show");
+  render();
+}
+
+async function send(){
+  const text=$("draft").value.trim();
+  if(!text)return;
+
+  const id=current;
+  const version=requestVersion[id];
+  const arr=history(id);
+
+  arr.push({from:"me",text,time:stamp()});
+  persist(id,arr);
+
+  $("draft").value="";
+  $("send").disabled=true;
+  render();
+
+  const typing=document.createElement("div");
+  typing.className="typing";
+  typing.textContent=people[id].name+" đang nhập...";
+  $("messages").appendChild(typing);
+  $("messages").scrollTop=$("messages").scrollHeight;
+
+  try{
+    const response=await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        character:id,
+        messages:arr.slice(-20)
+          .filter(m=>m.type!=="sticker")
+          .map(m=>({
+            role:m.from==="me"?"user":"assistant",
+            content:m.text
+          }))
+      })
+    });
+
+    const data=await response.json();
+    typing.remove();
+
+    if(requestVersion[id]!==version)return;
+    if(!response.ok)throw new Error(data.error||"Không thể kết nối AI.");
+
+    const reply=(data.reply||"").trim();
+    if(!reply)throw new Error("AI chưa trả lời, thử lại nhé.");
+
+    const latest=history(id);
+    latest.push({from:"ai",text:reply,time:stamp()});
+    persist(id,latest);
+
+    if(current===id)render();
+
+  }catch(e){
+    typing.remove();
+    if(requestVersion[id]!==version)return;
+
+    const latest=history(id);
+    latest.push({
+      from:"ai",
+      text:"Tui chưa kết nối được lúc này. Bà thử lại sau nhé. ("+e.message+")",
+      time:stamp()
+    });
+    persist(id,latest);
+
+    if(current===id)render();
+  }
+}
+
+function buildStickers(){
+  stickerSet.forEach(s=>{
+    const b=document.createElement("button");
+    b.className="sticker-choice";
+    b.type="button";
+    b.innerHTML=stickerMarkup(s.id)+"<small>"+s.label+"</small>";
+    b.addEventListener("click",()=>sendSticker(s.id));
+    $("stickers").appendChild(b);
+  });
+}
+
+document.querySelectorAll(".tab").forEach(b=>
+  b.addEventListener("click",()=>{
+    current=b.dataset.person;
+    render();
+  })
+);
+
+$("send").addEventListener("click",send);
+
+$("draft").addEventListener("input",()=>{
+  $("send").disabled=!$("draft").value.trim();
+});
+
+$("draft").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
+    send();
+  }
+});
+
+$("stickerToggle").addEventListener("click",()=>{
+  $("stickers").classList.toggle("show");
+});
+
+$("resetChat").addEventListener("click",()=>{
+  if(!confirm("Xóa toàn bộ cuộc trò chuyện với "+people[current].name+" trên trình duyệt này?"))return;
+
+  localStorage.removeItem(storeKey(current));
+  requestVersion[current]++;
+  render();
+});
+
+buildStickers();
+render();
+</script>
+</body>
+</html>

@@ -28,7 +28,7 @@ app.post("/api/chat", async (req,res) => {
     const system=profiles[character].style;
     const contents=[];
     for(const m of clean) contents.push({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]});
-    const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{
+    const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",{
       method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
       body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents,generationConfig:{temperature:0.9,maxOutputTokens:350}})
     });

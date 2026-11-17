@@ -3,27 +3,22 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
+
 app.use(express.json({ limit: "30kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const profiles = {
   han: {
     name: "Han Su Gang",
-    source: "Brave Citizen",
     style: "Giữ cách nói chuyện phù hợp với nhân vật Han Su Gang trong Brave Citizen. Trò chuyện trực tiếp như nhắn tin riêng với một người. Tự nhiên, linh hoạt, có thể dùng tiếng lóng Gen Z, meme và emoji đúng lúc nhưng không lạm dụng. Chỉ viết lời nhắn của nhân vật. Không viết cốt truyện, không miêu tả hành động trong dấu sao, không thêm lời dẫn, không tự nói thay người dùng. Không chủ động nhắn trước. Giữ nội dung phù hợp với người dùng tuổi teen; không tạo nội dung tình dục, không nhập vai tình cảm lãng mạn hoặc thân mật, không cổ súy hành vi nguy hiểm hay tự làm hại."
   },
   geum: {
     name: "Geum Seong-je",
-    source: "Weak Hero Class 2",
     style: "Giữ cách nói chuyện phù hợp với nhân vật Geum Seong-je trong Weak Hero Class 2. Trò chuyện trực tiếp như nhắn tin riêng với một người. Tự nhiên, linh hoạt, có thể dùng tiếng lóng Gen Z, meme và emoji đúng lúc nhưng không lạm dụng. Chỉ viết lời nhắn của nhân vật. Không viết cốt truyện, không miêu tả hành động trong dấu sao, không thêm lời dẫn, không tự nói thay người dùng. Không chủ động nhắn trước. Giữ nội dung phù hợp với người dùng tuổi teen; không tạo nội dung tình dục, không nhập vai tình cảm lãng mạn hoặc thân mật, không cổ súy hành vi nguy hiểm hay tự làm hại."
   }
 };
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
-
 app.post("/api/chat", async (req, res) => {
-  const requestId = Math.random().toString(36).slice(2, 8);
-
   try {
     const { character, messages } = req.body || {};
 
@@ -35,94 +30,73 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Lịch sử tin nhắn không hợp lệ." });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      console.error(`[${requestId}] GEMINI_API_KEY is missing`);
       return res.status(503).json({
-        error: "Máy chủ chưa được cấu hình GEMINI_API_KEY trong Render."
+        error: "Máy chủ chưa được cấu hình GROQ_API_KEY."
       });
     }
 
-    const contents = messages.map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: String(m.content || "").slice(0, 2000) }]
+    const cleanMessages = messages.map((m) => ({
+      role: m.role === "assistant" ? "assistant" : "user",
+      content: String(m.content || "").slice(0, 2000)
     }));
 
-    console.log(`[${requestId}] Chat request: character=${character}, messages=${contents.length}`);
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 40000);
-
-    let response;
-    let data;
-
-    try {
-      response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: profiles[character].style }]
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-oss-20b",
+          messages: [
+            {
+              role: "system",
+              content: profiles[character].style
             },
-            contents,
-            generationConfig: {
-              temperature: 0.9,
-              maxOutputTokens: 350
-            }
-          }),
-          signal: controller.signal
-        }
-      );
+            ...cleanMessages
+          ],
+          temperature: 0.9,
+          max_completion_tokens: 350
+        }),
+        signal: AbortSignal.timeout(35000)
+      }
+    );
 
-      data = await response.json().catch(() => ({}));
-    } finally {
-      clearTimeout(timeout);
-    }
+    const data = await response.json();
 
     if (!response.ok) {
-      const message = data.error?.message ||
-        `Gemini API trả về HTTP ${response.status}.`;
-
-      console.error(`[${requestId}] Gemini API error ${response.status}: ${message}`);
-
-      return res.status(502).json({ error: message });
+      console.error("Groq API error:", response.status, data);
+      return res.status(502).json({
+        error: data.error?.message || "Groq tạm thời không phản hồi."
+      });
     }
 
-    const reply = (data.candidates?.[0]?.content?.parts || [])
-      .map((p) => p.text || "")
-      .join("")
-      .trim();
+    const reply = data.choices?.[0]?.message?.content?.trim();
 
     if (!reply) {
-      console.error(`[${requestId}] Gemini returned an empty response`);
-
       return res.status(502).json({
-        error: "AI không trả về nội dung. Bà thử gửi lại nhé."
+        error: "AI không trả về nội dung."
       });
     }
 
-    console.log(`[${requestId}] Gemini response received`);
-    return res.json({ reply });
+    res.json({ reply });
 
   } catch (error) {
-    if (error.name === "AbortError") {
-      console.error(`[${requestId}] Gemini request timed out`);
+    console.error("Chat server error:", error);
 
+    if (error.name === "TimeoutError") {
       return res.status(504).json({
-        error: "AI phản hồi quá lâu. Bà thử gửi lại sau nhé."
+        error: "AI phản hồi quá lâu. Bà thử lại nhé."
       });
     }
 
-    console.error(`[${requestId}] Server error: ${error.message}`);
-
-    return res.status(500).json({
-      error: "Lỗi máy chủ: " + error.message
+    res.status(500).json({
+      error: "Lỗi máy chủ. Vui lòng thử lại."
     });
   }
 });

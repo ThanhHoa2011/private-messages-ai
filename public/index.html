@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#252d3a">
+<title>Private Messages</title>
+<style>
+:root{--ink:#202635;--muted:#7b8495;--line:#e7eaf0;--accent:#536b83}
+*{box-sizing:border-box}body{margin:0;background:#eef1f6;color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+.app{max-width:760px;height:100dvh;max-height:960px;margin:auto;background:#fff;display:flex;flex-direction:column;box-shadow:0 8px 35px #1e293b12}
+header{padding:17px 20px;background:#252d3a;color:#fff}.brand{font-size:11px;letter-spacing:.14em;color:#bac5d4;font-weight:700}.headrow{display:flex;align-items:center;justify-content:space-between;margin-top:4px}h1{font-size:21px;margin:0}.status{font-size:11px;border:1px solid #5caa82;color:#a8edc6;padding:4px 9px;border-radius:20px}
+.tabs{display:flex;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}.tab{flex:1;display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:#fff;padding:9px;border-radius:14px;text-align:left;color:var(--ink);cursor:pointer}.tab.active{background:#edf2f7;border-color:#aab9c9}.avatar{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none}.han{background:#795b72}.geum{background:#536b83}.tab strong{display:block;font-size:13px}.tab small{color:var(--muted);font-size:11px}
+.chathead{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line)}.meta{flex:1}.chathead strong{display:block}.chathead small{color:var(--muted)}.messages{flex:1;overflow:auto;padding:18px 15px;background:#f9fafc}.empty{text-align:center;color:var(--muted);margin:18vh auto 0;max-width:280px}.empty .big{font-size:34px}.msg{max-width:84%;padding:10px 13px;border-radius:17px;margin:9px 0;white-space:pre-wrap;overflow-wrap:anywhere}.msg.me{background:#dce9f7;margin-left:auto;border-bottom-right-radius:5px}.msg.ai{background:#fff;border:1px solid var(--line);margin-right:auto;border-bottom-left-radius:5px}.time{font-size:10px;color:#8b93a1;margin-top:4px;text-align:right}
+.composer{border-top:1px solid var(--line);padding:11px 13px calc(11px + env(safe-area-inset-bottom));background:#fff}.stickers{display:none;gap:7px;flex-wrap:wrap;margin-bottom:9px}.stickers.show{display:flex}.stickers button{border:1px solid var(--line);background:#f7f8fa;border-radius:10px;padding:6px 9px;font-size:19px}.compose{display:flex;align-items:flex-end;gap:8px}.iconbtn{border:0;background:#f0f2f6;border-radius:12px;width:42px;height:42px;font-size:19px}textarea{flex:1;resize:none;min-height:42px;max-height:120px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;outline:none}.send{height:42px;border:0;border-radius:12px;background:#34495e;color:#fff;padding:0 16px;font-weight:650}.send:disabled{opacity:.4}.hint{font-size:10px;color:var(--muted);padding:7px 3px 0}.typing{color:var(--muted);font-size:12px;margin:6px 4px}
+@media(min-width:761px){body{padding:20px 0}.app{height:calc(100dvh - 40px);border-radius:20px;overflow:hidden}}
+</style></head>
+<body><div class="app">
+<header><div class="brand">YOUR PRIVATE CHAT</div><div class="headrow"><h1>Tin nhắn</h1><span class="status">AI chat</span></div></header>
+<nav class="tabs">
+<button class="tab active" data-person="han"><span class="avatar han">한</span><span><strong>Han Su Gang</strong><small>Brave Citizen</small></span></button>
+<button class="tab" data-person="geum"><span class="avatar geum">금</span><span><strong>Geum Seong-je</strong><small>Weak Hero Class 2</small></span></button>
+</nav>
+<div class="chathead"><span id="headAvatar" class="avatar han">한</span><div class="meta"><strong id="headName">Han Su Gang</strong><small id="headSource">Brave Citizen · Chat riêng</small></div><span>⋯</span></div>
+<main id="messages" class="messages" aria-live="polite"></main>
+<section class="composer"><div id="stickers" class="stickers"><button>😂</button><button>😭</button><button>💀</button><button>🫠</button><button>🤨</button><button>👍</button><button>❤️</button><button>🤣</button></div>
+<div class="compose"><button id="stickerToggle" class="iconbtn" title="Emoji / sticker">☺</button><textarea id="draft" rows="1" placeholder="Nhắn tin..."></textarea><button id="send" class="send" disabled>Gửi</button></div>
+<div class="hint">Tin nhắn được lưu trên trình duyệt này. Không tự nhắn trước, không viết cốt truyện hay lời dẫn.</div></section></div>
+<script>
+const people={han:{name:"Han Su Gang",source:"Brave Citizen",initial:"한",cls:"han"},geum:{name:"Geum Seong-je",source:"Weak Hero Class 2",initial:"금",cls:"geum"}};
+let current="han";const $=id=>document.getElementById(id);const storeKey=id=>"pm-history-"+id;
+function history(id){try{return JSON.parse(localStorage.getItem(storeKey(id))||"[]")}catch{return []}}
+function persist(id,arr){localStorage.setItem(storeKey(id),JSON.stringify(arr))}
+function stamp(){return new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})}
+function addBubble(text,from,time=stamp()){const el=document.createElement("div");el.className="msg "+(from==="me"?"me":"ai");el.textContent=text;const t=document.createElement("div");t.className="time";t.textContent=time;el.appendChild(t);$("messages").appendChild(el)}
+function render(){const p=people[current],arr=history(current);document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.person===current));$("headAvatar").className="avatar "+p.cls;$("headAvatar").textContent=p.initial;$("headName").textContent=p.name;$("headSource").textContent=p.source+" · Chat riêng";$("messages").innerHTML="";if(!arr.length){$("messages").innerHTML='<div class="empty"><div class="big">💬</div><strong>Bắt đầu cuộc trò chuyện</strong><p>Nhắn tin tự nhiên như Messenger nhé.</p></div>';return}arr.forEach(m=>addBubble(m.text,m.from,m.time));$("messages").scrollTop=$("messages").scrollHeight}
+async function send(){const text=$("draft").value.trim();if(!text)return;const id=current,arr=history(id);arr.push({from:"me",text,time:stamp()});persist(id,arr);$("draft").value="";$("send").disabled=true;render();const typing=document.createElement("div");typing.className="typing";typing.textContent=people[id].name+" đang nhập...";$("messages").appendChild(typing);$("messages").scrollTop=$("messages").scrollHeight;
+try{const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({character:id,messages:arr.slice(-20).map(m=>({role:m.from==="me"?"user":"assistant",content:m.text}))})});const data=await response.json();typing.remove();if(!response.ok)throw new Error(data.error||"Không thể kết nối AI.");const reply=(data.reply||"").trim();if(!reply)throw new Error("AI chưa trả lời, thử lại nhé.");const latest=history(id);latest.push({from:"ai",text:reply,time:stamp()});persist(id,latest);if(current===id){render()}}catch(e){typing.remove();const latest=history(id);latest.push({from:"ai",text:"Tui chưa kết nối được lúc này. Bà thử lại sau nhé. ("+e.message+")",time:stamp()});persist(id,latest);if(current===id)render()}}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{current=b.dataset.person;render()}));$("send").addEventListener("click",send);$("draft").addEventListener("input",()=>{$("send").disabled=!$("draft").value.trim()});$("draft").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});$("stickerToggle").addEventListener("click",()=>$("stickers").classList.toggle("show"));$("stickers").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{$("draft").value+=($("draft").value?" ":"")+b.textContent;$("send").disabled=false;$("draft").focus()}));render();
+</script></body></html>
